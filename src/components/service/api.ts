@@ -12,9 +12,19 @@ const api = axios.create({
   },
 });
 
+const setAuthToken = (token: string) => {
+  if (token) {
+    api.defaults.headers.Authorization = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.Authorization;
+  }
+};
+
 // Función para autenticar al usuario (Login)
 export const authenticateUser = async (email: string, password: string): Promise<{ token: string }> => {
   const response = await api.post('/login', { email, password });
+  const token = response.data.token;
+  setAuthToken(token);
   return response.data;
 };
 

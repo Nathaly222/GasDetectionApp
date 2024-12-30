@@ -10,7 +10,7 @@ interface RegisterData {
 }
 
 interface AuthProps {
-  navigation: any; // Puedes mejorar este tipo si usas un tipo de navegación específico
+  navigation: any; 
 }
 
 const Auth: React.FC<AuthProps> = ({ navigation }) => {
@@ -118,7 +118,7 @@ const Auth: React.FC<AuthProps> = ({ navigation }) => {
           ¿Ya tienes una cuenta?{' '}
           <Text 
             style={styles.loginLink} 
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('LoginScreen')}
           >
             Iniciar sesión
           </Text>
@@ -142,8 +142,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
-    color: '#BA2121', // Color personalizado para el label
-    fontWeight: 'bold', // Opcional, para destacar el texto
+    color: '#BA2121', 
+    fontWeight: 'bold', 
   },
   button: {
     marginTop: 20,
@@ -154,12 +154,12 @@ const styles = StyleSheet.create({
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20, // Espaciado para la imagen
+    marginBottom: 20, 
   },
   image: {
-    width: 100, // Ancho de la imagen
-    height: 100, // Alto de la imagen
-    resizeMode: 'contain', // Ajusta la imagen a la caja sin deformarla
+    width: 100, 
+    height: 100, 
+    resizeMode: 'contain', 
   },
   loginContainer: {
     marginTop: 20,
@@ -169,9 +169,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginLink: {
-    color: '#D79B3C', // Color para el enlace
+    color: '#D79B3C', 
     fontWeight: 'bold',
-    textDecorationLine: 'underline', // Subraya el texto
+    textDecorationLine: 'underline', 
   },
 });
 
