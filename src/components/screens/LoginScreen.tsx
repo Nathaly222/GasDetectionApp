@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Image, View } from 'react-native';
-import { Layout, Text, Input,  Button, Spinner} from '@ui-kitten/components';
+import { Layout, Text, Input, Button, Spinner } from '@ui-kitten/components';
 import { authenticateUser } from '../service/api';
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,7 +8,6 @@ const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [token, setToken] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const navigation = useNavigation();
 
@@ -19,10 +18,10 @@ const LoginScreen: React.FC = () => {
     }
     setLoading(true);
     try {
-      const { token } = await authenticateUser(email, password);
-      setToken(token);
+
+      await authenticateUser(email, password);
       setError('');
-      navigation.navigate('Dashboard' as never);
+      navigation.navigate('DashboardScreen' as never); 
     } catch (error: any) {
       setError(error.message || 'Error al iniciar sesión.');
     }
@@ -62,10 +61,9 @@ const LoginScreen: React.FC = () => {
         disabled={loading}
         accessoryLeft={loading ? (props) => <Spinner size='small'/> : undefined}
       >{loading ? 'Iniciando...' : 'Iniciar'}
-            </Button>
+      </Button>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
-      {token && <Text style={styles.tokenText}>Token: {token}</Text>}
     </Layout>
   );
 };
@@ -110,12 +108,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginTop: 10,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  tokenText: {
-    marginTop: 10,
-    color: 'green',
     textAlign: 'center',
     fontSize: 14,
   },

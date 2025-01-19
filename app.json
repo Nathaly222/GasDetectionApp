@@ -25,7 +25,8 @@
       "favicon": "./assets/favicon.png"
     },
       "expo": {
-        "icon": "./assets/fuego.png" 
+        "icon": "./assets/fuego.png",
+        "API_URL": "http://10.0.3.4:3000"
       }
   }
 }

@@ -1,56 +1,57 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { Layout, Button, Icon } from '@ui-kitten/components';
-import Svg, { Circle } from 'react-native-svg';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { Layout, Button, Icon, BottomNavigation, BottomNavigationTab, IconProps } from '@ui-kitten/components';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { useProgress } from '../helpers/progress.hook';
+
+const { height } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
-  const HomeIcon = () => (
-    <Text style={styles.iconText}>🏠</Text>
-  );
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const progress = useProgress();
 
-  const ChatIcon = () => (
-    <Text style={styles.iconText}>💬</Text>
-  );
-
-  const SettingsIcon = () => (
-    <Text style={styles.iconText}>⚙️</Text>
-  );
+  const HomeIcon = (props: IconProps) => <Icon {...props} name="home-outline" />;
+  const BellIcon = (props: IconProps) => <Icon {...props} name="bell-outline" />;
+  const SettingsIcon = (props: IconProps) => <Icon {...props} name="settings-outline" />;
 
   return (
     <Layout style={styles.container}>
-      <View style={styles.header}>
-        <Button style={styles.nowButton} size="small">
-          Now
-        </Button>
-        <Button style={styles.arrowButton} size="small">
-          ⇩
-        </Button>
+      <View style={styles.topContainer}>
+        <View style={styles.header}>
+          <Button style={styles.nowButton} size="small">
+            Now
+          </Button>
+          <Button style={styles.arrowButton} size="small">
+            ⇩
+          </Button>
+        </View>
+        <View style={styles.progressContainer}>
+          <AnimatedCircularProgress
+            size={200}
+            width={20}
+            fill={progress}
+            tintColor="#BA2121"
+            backgroundColor="#E0E0E0"
+            lineCap="round"
+          >
+            {() => (
+              <Text style={styles.percentageText}>
+                {Math.round(progress)}%
+              </Text>
+            )}
+          </AnimatedCircularProgress>
+        </View>
       </View>
-      
-      <View style={styles.circleContainer}>
-        <Svg height="200" width="200">
-          <Circle cx="100" cy="100" r="80" stroke="#F4A261" strokeWidth="20" fill="none" />
-          <Circle cx="100" cy="100" r="60" stroke="#FFF" strokeWidth="20" fill="none" />
-        </Svg>
-        <Text style={styles.percentageText}>0.02% G</Text>
-      </View>
-
-      <View style={styles.bottomNav}>
-        <Button 
-          style={styles.navButton} 
-          appearance="ghost"
-          accessoryLeft={HomeIcon}
-        />
-        <Button 
-          style={styles.navButton} 
-          appearance="ghost"
-          accessoryLeft={ChatIcon}
-        />
-        <Button 
-          style={styles.navButton} 
-          appearance="ghost"
-          accessoryLeft={SettingsIcon}
-        />
+      <View style={styles.bottomNavContainer}>
+        <BottomNavigation
+          style={styles.bottomNav}
+          selectedIndex={selectedIndex}
+          onSelect={(index) => setSelectedIndex(index)}
+        >
+          <BottomNavigationTab icon={HomeIcon} title="HOME" />
+          <BottomNavigationTab icon={BellIcon} title="ORDERS" />
+          <BottomNavigationTab icon={SettingsIcon} title="SETTINGS" />
+        </BottomNavigation>
       </View>
     </Layout>
   );
@@ -59,7 +60,26 @@ const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E9C46A',
+    backgroundColor: '#FFF',
+  },
+  topContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.5, 
+    backgroundColor: '#D79B3C',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4, 
+    shadowColor: '#000', 
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -68,42 +88,34 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   nowButton: {
-    backgroundColor: '#F4A261',
+    backgroundColor: '#BA2121',
     borderColor: 'transparent',
     borderRadius: 10,
   },
   arrowButton: {
-    backgroundColor: '#F4A261',
+    backgroundColor: '#BA2121',
     borderColor: 'transparent',
     borderRadius: 10,
   },
-  circleContainer: {
+  progressContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
   percentageText: {
-    position: 'absolute',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
   },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#F4A261',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-  },
-  navButton: {
-    borderRadius: 0,
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  iconText: {
-    fontSize: 24,
   },
 });
 

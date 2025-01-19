@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Layout, Input, Button, Text, Spinner } from '@ui-kitten/components';
 import { StyleSheet, Alert, Image, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Usar AsyncStorage para almacenar el token
+import { registerUser } from '../service/api'; // Asegúrate de importar las funciones de la API correctamente
 
 interface RegisterData {
   username: string;
@@ -10,7 +12,7 @@ interface RegisterData {
 }
 
 interface AuthProps {
-  navigation: any; 
+  navigation: any;
 }
 
 const Auth: React.FC<AuthProps> = ({ navigation }) => {
@@ -25,30 +27,21 @@ const Auth: React.FC<AuthProps> = ({ navigation }) => {
   const handleRegister = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch('YOUR_API_URL/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Éxito', 'Usuario registrado correctamente');
-        navigation.navigate('Home');
+      console.log(formData);
+      await registerUser(formData.username, formData.email, formData.password, formData.phone);
+      Alert.alert('Éxito', 'Usuario registrado correctamente');
+      navigation.navigate('LoginScreen'); // Redirigir a la pantalla de login tras el registro
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message || 'Error al registrar usuario');
       } else {
-        Alert.alert('Error', data.message || 'Error al registrar usuario');
+        Alert.alert('Error', 'Error desconocido al registrar');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
-      console.error(error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleChange = (name: keyof RegisterData) => (value: string) => {
     setFormData(prev => ({
@@ -59,16 +52,12 @@ const Auth: React.FC<AuthProps> = ({ navigation }) => {
 
   return (
     <Layout style={styles.container}>
-     
       <View style={styles.imageContainer}>
-        <Image 
-          source={require('../assets/fuego.png')} 
-          style={styles.image} 
-        />
+        <Image source={require('../assets/fuego.png')} style={styles.image} />
       </View>
 
       <Text category="h1" style={styles.header}>Registrar</Text>
-      
+
       <Input
         style={styles.input}
         label="Nombre de usuario"
@@ -104,8 +93,8 @@ const Auth: React.FC<AuthProps> = ({ navigation }) => {
         placeholder="Ingrese su contraseña"
       />
 
-      <Button 
-        style={styles.button} 
+      <Button
+        style={styles.button}
         onPress={handleRegister}
         disabled={loading}
         accessoryLeft={loading ? (props) => <Spinner size='small'/> : undefined}
@@ -116,8 +105,8 @@ const Auth: React.FC<AuthProps> = ({ navigation }) => {
       <View style={styles.loginContainer}>
         <Text category="s1" style={styles.loginText}>
           ¿Ya tienes una cuenta?{' '}
-          <Text 
-            style={styles.loginLink} 
+          <Text
+            style={styles.loginLink}
             onPress={() => navigation.navigate('LoginScreen')}
           >
             Iniciar sesión
@@ -142,24 +131,24 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
-    color: '#BA2121', 
-    fontWeight: 'bold', 
+    color: '#BA2121',
+    fontWeight: 'bold',
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#D79B3C', 
-    borderRadius: 10,           
+    backgroundColor: '#D79B3C',
+    borderRadius: 10,
     padding: 10,
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20, 
+    marginBottom: 20,
   },
   image: {
-    width: 100, 
-    height: 100, 
-    resizeMode: 'contain', 
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
   },
   loginContainer: {
     marginTop: 20,
@@ -169,9 +158,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginLink: {
-    color: '#D79B3C', 
+    color: '#D79B3C',
     fontWeight: 'bold',
-    textDecorationLine: 'underline', 
+    textDecorationLine: 'underline',
   },
 });
 

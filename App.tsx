@@ -1,20 +1,20 @@
 import React from 'react';
-import { ApplicationProvider } from '@ui-kitten/components';
+import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
 import { NavigationContainer } from '@react-navigation/native';
 import * as eva from '@eva-design/eva';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import AppRouter from './src/components/routers';
 
 const App = () => {
   return (
-    <ApplicationProvider
-      {...eva}
-      theme={{ ...eva.light }}
-     
-    >
-      <NavigationContainer>
-        <AppRouter />
-      </NavigationContainer>
-    </ApplicationProvider>
+    <>
+      <IconRegistry icons={EvaIconsPack} />
+      <ApplicationProvider {...eva} theme={eva.light}>
+        <NavigationContainer>
+          <AppRouter />
+        </NavigationContainer>
+      </ApplicationProvider>
+    </>
   );
 };
 
