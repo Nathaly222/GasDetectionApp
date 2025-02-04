@@ -3,13 +3,16 @@ import { StyleSheet, Image, View } from 'react-native';
 import { Layout, Text, Input, Button, Spinner } from '@ui-kitten/components';
 import { authenticateUser } from '../service/api';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const navigation = useNavigation();
+
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>(); 
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -21,7 +24,7 @@ const LoginScreen: React.FC = () => {
 
       await authenticateUser(email, password);
       setError('');
-      navigation.navigate('DashboardScreen' as never); 
+      navigation.navigate('MainTabs'); 
     } catch (error: any) {
       setError(error.message || 'Error al iniciar sesión.');
     }
