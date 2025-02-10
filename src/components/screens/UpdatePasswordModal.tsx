@@ -12,22 +12,58 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ visible, onCl
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleUpdate = async () => {
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
+    try {
+      setError("");
+      setSuccessMessage(""); // Clear previous success message
+
+      if (!password || !confirmPassword) {
+        setError("Todos los campos son requeridos");
+        return;
+      }
+
+      if (password.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError("Las contraseñas no coinciden");
+        return;
+      }
+
+      setLoading(true);
+      await updateUser({ password });
+      setSuccessMessage("Contraseña actualizada exitosamente");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(true);
-    await updateUser({ password });
-    setLoading(false);
-    onClose();
   };
 
   return (
     <Modal visible={visible} backdropStyle={styles.backdrop} onBackdropPress={onClose}>
       <Card disabled={true} style={styles.card}>
         <Text category="h5" style={styles.title}>Actualizar Contraseña</Text>
+
+        {error && (
+          <Text style={[styles.errorText, { color: '#BA2121' }]}>
+            {error}
+          </Text>
+        )}
+
+        {successMessage && (
+          <Text style={[styles.successText]}>
+            {successMessage}
+          </Text>
+        )}
+
         <TextInput
           style={styles.input}
           placeholder="Nueva contraseña"
@@ -42,10 +78,19 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ visible, onCl
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
-        <Button style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
+        <Button 
+          style={styles.saveButton} 
+          onPress={handleUpdate} 
+          disabled={loading || !password || !confirmPassword}
+        >
           {loading ? "Actualizando..." : "Guardar"}
         </Button>
-        <Button style={styles.cancelButton} appearance="outline" onPress={onClose}>
+        <Button 
+          style={styles.cancelButton} 
+          appearance="outline" 
+          onPress={onClose}
+          disabled={loading}
+        >
           Cancelar
         </Button>
       </Card>
@@ -54,7 +99,9 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ visible, onCl
 };
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+  backdrop: { 
+    backgroundColor: "rgba(0, 0, 0, 0.5)" 
+  },
   card: {
     padding: 20,
     width: 320,
@@ -63,7 +110,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5, 
+    elevation: 5,
   },
   title: {
     marginBottom: 15,
@@ -90,6 +137,17 @@ const styles = StyleSheet.create({
     borderColor: "#BA2121",
     borderRadius: 8,
   },
+  errorText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  successText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 14,
+    color: "#28a745", 
+  }
 });
 
 export default UpdatePasswordModal;

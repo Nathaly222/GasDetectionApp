@@ -11,6 +11,8 @@ interface ContactModalProps {
 const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) => {
   const [contact, setContact] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchContact = async () => {
@@ -23,10 +25,24 @@ const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) => {
   }, [visible]);
 
   const handleUpdate = async () => {
-    setLoading(true);
-    await updateUser({ phone: contact });
-    setLoading(false);
-    onClose();
+    try {
+      setError("");
+      setSuccessMessage(""); // Limpiar mensaje anterior de éxito
+
+      if (!contact) {
+        setError("El número de teléfono es requerido");
+        return;
+      }
+
+      setLoading(true);
+      await updateUser({ phone: contact });
+      setSuccessMessage("Número de teléfono actualizado exitosamente");
+      setContact(""); // Limpiar campo de teléfono
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +51,19 @@ const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) => {
         <Text category="h5" style={styles.title}>
           Actualizar Contacto
         </Text>
+
+        {error && (
+          <Text style={[styles.errorText, { color: '#BA2121' }]}>
+            {error}
+          </Text>
+        )}
+
+        {successMessage && (
+          <Text style={[styles.successText]}>
+            {successMessage}
+          </Text>
+        )}
+
         <TextInput
           style={styles.input}
           placeholder="Número de teléfono"
@@ -42,7 +71,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) => {
           value={contact}
           onChangeText={setContact}
         />
-        <Button style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
+        <Button style={styles.saveButton} onPress={handleUpdate} disabled={loading || !contact}>
           {loading ? "Actualizando..." : "Guardar"}
         </Button>
         <Button style={styles.cancelButton} appearance="outline" onPress={onClose}>
@@ -54,7 +83,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+  backdrop: { 
+    backgroundColor: "rgba(0, 0, 0, 0.5)" 
+  },
   card: {
     padding: 20,
     width: 320,
@@ -63,7 +94,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5, 
+    elevation: 5,
   },
   title: {
     marginBottom: 15,
@@ -90,6 +121,17 @@ const styles = StyleSheet.create({
     borderColor: "#BA2121",
     borderRadius: 8,
   },
+  errorText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  successText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 14,
+    color: "#28a745", 
+  }
 });
 
 export default ContactModal;

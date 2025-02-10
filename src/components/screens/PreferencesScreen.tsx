@@ -37,9 +37,13 @@ const ProfileScreen = () => {
 
   return (
     <Layout style={styles.container}>
-      {/* Encabezado */}
       <View style={styles.header}>
-        <Avatar source={{ uri: user?.avatar || "https://via.placeholder.com/100" }} style={styles.avatar} />
+        <Avatar
+          source={{
+            uri: user?.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+          }}
+          style={styles.avatar}
+        />
         <Text category="h5" style={styles.name}>
           {user?.username || "Cargando..."}
         </Text>
@@ -63,7 +67,6 @@ const ProfileScreen = () => {
         Cerrar Sesión
       </Button>
 
-      {/* Modales */}
       <ContactModal visible={showContactModal} onClose={() => setShowContactModal(false)} />
       <UpdateEmailModal visible={emailModalVisible} onClose={() => setEmailModalVisible(false)} />
       <UpdatePasswordModal visible={passwordModalVisible} onClose={() => setPasswordModalVisible(false)} />
@@ -74,7 +77,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#F7F9FC" },
   header: { alignItems: "center", marginBottom: 20 },
-  avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
+  avatar: { width: 120, height: 120, borderRadius: 60, marginBottom: 10 },
   name: { fontWeight: "bold", fontSize: 20, marginTop: 5 },
   listItem: {
     marginVertical: 5,
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3, // Para Android
+    elevation: 3, 
   },
   logoutButton: {
     marginTop: 20,

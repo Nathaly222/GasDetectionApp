@@ -86,6 +86,27 @@ export const authenticateUser = async (email: string, password: string): Promise
   }
 };
 
+export const getProfile = async () => {
+  try {
+    const response = await api.get('/users/profile');
+    if (!response.data) {
+      throw new Error('No se recibieron datos del servidor');
+    }
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente');
+    }
+    if (error.response?.status === 404) {
+      throw new Error('Perfil no encontrado');
+    }
+    throw new Error(
+      error.response?.data?.message || 
+      'Error al obtener el perfil del usuario'
+    );
+  }
+};
+
 
 export const getUserData = async (): Promise<any> => {
   try {
@@ -103,14 +124,22 @@ export const getUserData = async (): Promise<any> => {
 };
 
 
-export const updateUser = async (userData: any): Promise<void> => {
+export const updateUser = async (userData:  { email?: string; phone?: string; password?: string }): Promise<void> => {
   try {
-    const response = await api.put('/users/update', userData);
+    const response = await api.put('/users/update', userData, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
     if (response.data.status !== 'success') {
-      throw new Error(response.data.message || 'Error desconocido al actualizar');
+      throw new Error(response.data.message || 'Error al actualizar');
     }
+    
+    return response.data;
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Error al actualizar datos del usuario');
+    const errorMessage = error.response?.data?.message || 'Error al actualizar datos del usuario';
+    throw new Error(errorMessage);
   }
 };
 

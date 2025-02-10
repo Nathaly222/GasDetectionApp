@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Dimensions, Switch } from 'react-native';
-import { Layout, Button, Icon, BottomNavigation, BottomNavigationTab, IconProps } from '@ui-kitten/components';
+import { Layout, Button} from '@ui-kitten/components';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useProgress } from '../helpers/progress.hook';
 import { getGasValue, setFanState, getFanState, triggerGasValve } from '../service/api';
@@ -8,7 +8,6 @@ import { getGasValue, setFanState, getFanState, triggerGasValve } from '../servi
 const { height } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [progress, setProgress ] = useState(0);
   const [ gasValue, setGasValue ] = useState<number>(0);
   const [fanState, setFanStateValue] = useState<boolean>(false);
@@ -77,9 +76,6 @@ const DashboardScreen: React.FC = () => {
       console.error(`Error al cambiar el estado de la válvula de gas (${state}):`, error);
     }
   };
-
-
- 
 
   return (
     <Layout style={styles.container}>
