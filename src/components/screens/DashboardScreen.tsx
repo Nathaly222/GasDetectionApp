@@ -1,65 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Dimensions, Switch } from 'react-native';
-import { Layout, Button} from '@ui-kitten/components';
+import { Layout, Button } from '@ui-kitten/components';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { useProgress } from '../helpers/progress.hook';
 import { getGasValue, setFanState, getFanState, triggerGasValve } from '../service/api';
 
 const { height } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
-  const [progress, setProgress ] = useState(0);
-  const [ gasValue, setGasValue ] = useState<number>(0);
-  const [fanState, setFanStateValue] = useState<boolean>(false);
+  const [progress, setProgress] = useState(0);
+  const [gasValue, setGasValue] = useState<number>(0);
   const [fanOn, setFanOn] = useState(false);
-  const [fanTime, setFanTime] = useState(0); 
+  const [fanTime, setFanTime] = useState(0);
 
+  useEffect(() => {
+    const fetchFanState = async () => {
+      try {
+        const fanState = await getFanState();
+        if (fanState?.status === 'success') {
+          setFanOn(fanState.data.fan_state);  
+        } else {
+          throw new Error('No se pudo obtener el estado del ventilador');
+        }
+      } catch (error) {
+        console.error('Error al obtener el estado del ventilador:', error);
+        setFanOn(false);  
+      }
+    };
+  
+    fetchFanState();
+  }, []);
+  
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (fanOn) {
       interval = setInterval(() => {
         setFanTime((prevTime) => prevTime + 1);
-      }, 1000); 
+      }, 1000);
     } else {
-      setFanTime(0); 
+      setFanTime(0);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [fanOn]);
 
-
   useEffect(() => {
     const fetchGasData = async () => {
       try {
-        const gasResponse = await getGasValue();
-        setGasValue(gasResponse.data.gas_concentration);
-        setProgress(gasResponse.data.gas_concentration);
+        const data = await getGasValue();
+        if (data?.status === 'success' && data?.data?.gas_concentration !== undefined) {
+          const gasValue = data.data.gas_concentration;
+          setGasValue(gasValue);
+          setProgress(gasValue);
+        } else {
+          throw new Error('Gas value not found in response');
+        }
       } catch (error) {
         console.error('Error al obtener el valor del gas:', error);
+        setGasValue(0);
+        setProgress(0);
       }
     };
 
-    fetchGasData(); 
+    fetchGasData();
   }, []);
 
-  useEffect(() => {
-    const fetchFanState = async () => {
-      try {
-        const ledResponse = await getFanState();
-        setFanStateValue(ledResponse.led_state);
-      } catch (error) {
-        console.error('Error al obtener el estado del ventilador:', error);
-      }
-    };
-
-    fetchFanState();
-  }, []);
-
-  const toggleFan = () => {
-    setFanOn((prevState) => !prevState);
+  const toggleFan = async () => {
+    try {
+      const newFanState = !fanOn; // Cambiar el estado actual, `true` o `false`
+      await setFanState(newFanState); // Llamar a setFanState con un valor booleano
+      setFanOn(newFanState); // Actualizar el estado del ventilador en el frontend
+    } catch (error) {
+      console.error('Error al cambiar el estado del ventilador:', error);
+    }
   };
-
+  
+  
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -70,8 +86,8 @@ const DashboardScreen: React.FC = () => {
     try {
       await triggerGasValve(state);
       const gasResponse = await getGasValue();
-      setGasValue(gasResponse.data.gas_concentration);
-      setProgress(gasResponse.data.gas_concentration); 
+      setGasValue(gasResponse?.data?.gas_concentration ?? 0);
+      setProgress(gasResponse?.data?.gas_concentration ?? 0);
     } catch (error) {
       console.error(`Error al cambiar el estado de la válvula de gas (${state}):`, error);
     }
@@ -84,7 +100,7 @@ const DashboardScreen: React.FC = () => {
           <AnimatedCircularProgress
             size={200}
             width={25}
-            fill={progress} 
+            fill={progress ?? 0} // Asegurar que no sea undefined
             tintColor="#D9631E"
             backgroundColor="#E0E0E0"
             lineCap="round"
@@ -92,7 +108,7 @@ const DashboardScreen: React.FC = () => {
           >
             {() => (
               <Text style={styles.percentageText}>
-                {Math.round(gasValue)} ppm
+                {Math.round(gasValue)} %
               </Text>
             )}
           </AnimatedCircularProgress>
@@ -158,7 +174,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop:  height * 0.1,
+    marginTop: height * 0.1,
   },
   percentageText: {
     fontSize: 24,
@@ -247,20 +263,6 @@ const styles = StyleSheet.create({
   gasControlButton: {
     width: '40%',
   },
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  bottomNav: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderColor: '#E0E0E0',
-  },
 });
-
 
 export default DashboardScreen;
