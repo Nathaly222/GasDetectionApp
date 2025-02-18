@@ -117,7 +117,7 @@ export const getUserData = async (): Promise<any> => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    return response.data.data; // `data` dentro de `data`
+    return response.data.data; 
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Error al obtener datos del usuario");
   }
@@ -193,14 +193,18 @@ export const setFanState = async (state: boolean): Promise<any> => {
   }
 }; 
 
-export const triggerGasValve = async (state: string): Promise<any> => {
+export const triggerGasValve = async (state: boolean): Promise<any> => {
   try {
-    const response = await api.get(`/events/valve-state/${state}`);
-    return response.data;
+    // El parámetro 'state' ahora es un booleano, que Thinger usa como 'true' (cerrar) y 'false' (abrir)
+    await api.post('/events/valve-state', { state: state });
+
+    return await getValveState();
   } catch (error: any) {
-    throw new Error (error.response?.data?.message || 'Error al activar/desactivar la válvula de gas');
+    throw new Error(error.response?.data?.message || 'Error al activar/desactivar la válvula de gas');
   }
-}
+};
+
+
  
 export const getNotificationDanger = async (): Promise<any> => {
   try {
