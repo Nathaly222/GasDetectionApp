@@ -8,6 +8,8 @@ import DashboardScreen from '../screens/DashboardScreen';
 import NotificationScreen from '../screens/EventsScreen';
 import { RootStackParamList, MainTabsParamList } from '../types/navigation';
 import ProfileScreen from '../screens/PreferencesScreen';
+import GasConcentrationChart from '../screens/GasConcetrationDate';
+import HelpSupport from '../screens/HelpSupport';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -24,9 +26,11 @@ const MainTabs = () => {
             iconName = 'home-outline';
           } else if (route.name === 'Notification') {
             iconName = 'bell-outline';
+          } else if (route.name === 'GasConcentration') { 
+            iconName = 'bar-chart-outline'; 
           } else if (route.name === 'Settings') {
             iconName = 'settings-outline';
-          }
+          } 
           return <Icon name={iconName} fill={color} style={{ width: size, height: size }} />;
         },
       })}
@@ -48,6 +52,14 @@ const MainTabs = () => {
         }}
       />
       <Tab.Screen
+      name="GasConcentration"
+      component={GasConcentrationChart} 
+      options={{
+        title: 'Concentración de Gas',
+        headerShown: false
+      }}
+      />
+      <Tab.Screen
         name='Settings'
         component={ProfileScreen}
         options={{
@@ -55,6 +67,7 @@ const MainTabs = () => {
           headerShown: false
         }}
       />
+
     </Tab.Navigator>
   );
 };
@@ -76,6 +89,11 @@ const AppRouter = () => {
           headerShown: false,
           gestureEnabled: false 
         }}
+      />
+      <Stack.Screen
+        name="Help"
+        component={HelpSupport}
+        options={{ title: 'Ayuda y Soporte' }} 
       />
     </Stack.Navigator>
   );

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const  BASE_URL = 'http://192.168.100.61:3000';  
-
+const  BASE_URL = 'http://192.168.100.61:3000'; 
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
@@ -10,15 +9,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => Promise.reject(error));
-
 
 api.interceptors.response.use(
   (response) => response,
@@ -165,14 +155,6 @@ export const getGasValue = async (): Promise<any> => {
   }
 };
 
-export const getValveState = async (): Promise<any> => {
-  try {
-    const response = await api.get('/events/valve-state');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Error al obtener el estado de la válvula');
-  }
-};
 
 export const getFanState = async (): Promise<any> => {
   try {
@@ -183,34 +165,58 @@ export const getFanState = async (): Promise<any> => {
   }
 };
 
-
-export const setFanState = async (state: boolean): Promise<any> => {
+export const getGasData = async (): Promise<any> => {
   try {
-    const response = await api.post(`/events/fan-state/${state}`);
-    return response.data;
+    const response = await api.get('/events/gas-data');
+    return response.data; 
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Error al activar/desactivar el ventilador');
-  }
-}; 
-
-export const triggerGasValve = async (state: boolean): Promise<any> => {
-  try {
-    // El parámetro 'state' ahora es un booleano, que Thinger usa como 'true' (cerrar) y 'false' (abrir)
-    await api.post('/events/valve-state', { state: state });
-
-    return await getValveState();
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Error al activar/desactivar la válvula de gas');
+    if (error.response) {
+      throw new Error(error.response?.data?.message || 'Error al obtener los datos de gas');
+    } else if (error.request) {
+      throw new Error('Error de red: No se pudo contactar con el servidor');
+    } else {
+      throw new Error('Error desconocido: ' + error.message);
+    }
   }
 };
 
+export const getValveState = async (): Promise<any> => {
+  try {
+    const response = await api.get('/events/valve-state');
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Error al obtener el estado de la válvula');
+  }
+};
 
- 
-export const getNotificationDanger = async (): Promise<any> => {
+export const triggerGasValve = async (state: boolean): Promise<any> => {
+  try {
+    const response = await api.post('/events/valve-state-cerrar', { state });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Error al desactivar la válvula de gas');
+  }
+};
+
+export const triggerFan = async (state: boolean): Promise<any> => {
+  try {
+    const response = await api.post('/events/valve-state-abrir', { state });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Error al activar el ventilador');
+  }
+};
+
+export const getNotificationDanger = async (): Promise<{ status: string; data: any[] }> => {
   try {
     const response = await api.get('/events/notification-danger');
     return response.data; 
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Error al obtener las notificaciones de peligro');
+    console.error('Error al obtener notificaciones de peligro:', error);
+    return {
+      status: 'error',
+      data: [],
+    };
   }
 };
+

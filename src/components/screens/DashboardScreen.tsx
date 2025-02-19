@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, ScrollView } from 'react-native';
 import { Layout, Button } from '@ui-kitten/components';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { getGasValue, getFanState, getValveState, triggerGasValve } from '../service/api';
+import { getGasValue, getFanState, getValveState, triggerGasValve, triggerFan } from '../service/api';
 
 const { height } = Dimensions.get('window');
+
+const COLORS = {
+  primary: '#D79B3C',
+  secondary: '#73121A',
+  primaryLight: '#F7F7F7',
+  secondaryLight: '#8F1622',
+  background: '#F7F7F7', 
+  cardBg: '#FFFFFF',
+  text: '#2C1810',
+};
 
 const DashboardScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -54,21 +64,17 @@ const DashboardScreen: React.FC = () => {
     fetchGasData();
   }, []);
 
-
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const toggleGasValve = async (state: string) => {
+  const handleOpenValve = async () => {
     try {
-      // 'open' -> false (abrir válvula) y 'close' -> true (cerrar válvula)
-      const valveState: boolean = state === 'open' ? false : true;
-      await triggerGasValve(valveState);
-  
+      await triggerFan(false);
       await new Promise((resolve) => setTimeout(resolve, 500));
-  
+
       const [gasResponse, valveStateResponse] = await Promise.all([
         getGasValue(),
         getValveState(),
@@ -77,10 +83,27 @@ const DashboardScreen: React.FC = () => {
       setProgress(gasResponse?.data?.gas_concentration ?? 0);
       setValveOpen(valveStateResponse?.data?.valve_state ?? null);
     } catch (error) {
-      console.error(`Error al cambiar el estado de la válvula de gas (${state}):`, error);
+      console.error('Error al abrir la válvula de gas:', error);
     }
   };
-  
+
+  const handleCloseValve = async () => {
+    try {
+      await triggerGasValve(false);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const [gasResponse, valveStateResponse] = await Promise.all([
+        getGasValue(),
+        getValveState(),
+      ]);
+      setGasValue(gasResponse?.data?.gas_concentration ?? 0);
+      setProgress(gasResponse?.data?.gas_concentration ?? 0);
+      setValveOpen(valveStateResponse?.data?.valve_state ?? null);
+    } catch (error) {
+      console.error('Error al cerrar la válvula de gas:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchValveState = async () => {
       try {
@@ -96,14 +119,18 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <Layout style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>GASGUARD</Text>
+      </View>
+
       <View style={styles.container}>
         <View style={styles.progressContainer}>
           <AnimatedCircularProgress
-            size={200}
-            width={25}
-            fill={progress ?? 0} 
-            tintColor="#D9631E"
-            backgroundColor="#E0E0E0"
+            size={180} 
+            width={20} 
+            fill={progress ?? 0}
+            tintColor={COLORS.secondary}
+            backgroundColor={COLORS.primaryLight}
             lineCap="round"
             rotation={0}
           >
@@ -119,14 +146,10 @@ const DashboardScreen: React.FC = () => {
       <View style={styles.fanInfoContainer}>
         <View style={styles.fanStatusCard}>
           <View style={styles.fanStatusHeader}>
-            <Text style={styles.fanStatusTitle}>
-              {fanOn ? 'Ventilador Encendido' : 'Ventilador Apagado'}
-            </Text>
+            <Text style={styles.fanStatusTitle}>Tiempo del Ventilador</Text>
           </View>
           <View style={styles.fanStatusContent}>
-            <Text style={styles.timerText}>
-              {fanOn ? `Tiempo: ${formatTime(fanTime)}` : 'Sin tiempo activo'}
-            </Text>
+            <Text style={styles.timerText}>{formatTime(fanTime)}</Text>
           </View>
         </View>
       </View>
@@ -140,15 +163,15 @@ const DashboardScreen: React.FC = () => {
           <View style={styles.gasControlActions}>
             <Button
               style={styles.gasControlButton}
-              onPress={() => toggleGasValve('open')}
-              status="success"
-              disabled={valveOpen === true} 
+              onPress={handleOpenValve}
+              status="primary"
+              disabled={valveOpen === true}
             >
               Abrir Válvula
             </Button>
             <Button
               style={styles.gasControlButton}
-              onPress={() => toggleGasValve('close')}
+              onPress={handleCloseValve}
               status="danger"
               disabled={valveOpen === false}
             >
@@ -164,17 +187,47 @@ const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FB',
+    backgroundColor: COLORS.background,
+  },
+  headerContainer: {
+    paddingTop: 40,
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingBottom: 40, // Aumenta el padding inferior para darle más altura
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.primaryLight,
+    borderBottomLeftRadius: 50,  // Redondea la parte inferior izquierda
+    borderBottomRightRadius: 50, // Y la parte inferior derecha
+    elevation: 4,
+    shadowColor: COLORS.secondary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.cardBg,
   },
   progressContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: height * 0.1,
+    backgroundColor: COLORS.cardBg,
+    padding: 15, // Espacio reducido
+    borderRadius: 15, // Bordes más suaves
+    marginHorizontal: 20,
+    elevation: 3, // Sombra más sutil
+    shadowColor: COLORS.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   percentageText: {
-    fontSize: 24,
+    fontSize: 28, // Un poco más pequeño
     fontWeight: 'bold',
-    color: '#73121A',
+    color: COLORS.secondary,
   },
   fanInfoContainer: {
     paddingHorizontal: 20,
@@ -183,34 +236,34 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   fanStatusCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 12, // Bordes más suaves
+    elevation: 2, // Sombra más sutil
+    borderWidth: 0.5, // Borde más fino
+    borderColor: COLORS.primaryLight,
   },
   fanStatusHeader: {
-    backgroundColor: '#D79B3C',
-    paddingVertical: 10,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
     paddingHorizontal: 15,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.secondary,
   },
   fanStatusTitle: {
-    color: '#FFFFFF',
+    color: COLORS.cardBg,
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
   },
   fanStatusContent: {
-    padding: 15,
+    padding: 20,
   },
   timerText: {
-    fontSize: 16,
+    fontSize: 18, // Un poco más pequeño
     fontWeight: '500',
-    color: '#444',
+    color: COLORS.secondary,
     textAlign: 'center',
   },
   gasControlContainer: {
@@ -220,31 +273,39 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   gasControlCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    elevation: 3,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 12,
+    elevation: 2, // Sombra más sutil
+    borderWidth: 0.5, // Borde más fino
+    borderColor: COLORS.primaryLight,
+    overflow: 'hidden',
   },
   gasControlTitle: {
-    backgroundColor: '#D79B3C',
-    color: '#FFFFFF',
+    backgroundColor: COLORS.primary,
+    color: COLORS.cardBg,
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '600',
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.secondary,
   },
   gasControlActions: {
-    padding: 15,
+    padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
   gasControlButton: {
-    width: '40%',
+    width: '45%',
+    borderRadius: 10,
   },
   valveStatus: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: COLORS.secondary,
     textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
-    marginVertical: 10,
-  }
+    marginVertical: 15,
+  },
 });
 
 export default DashboardScreen;

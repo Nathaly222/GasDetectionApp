@@ -12,7 +12,9 @@ const ProfileScreen = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const navigation = useNavigation();
+
+  // Actualiza el tipo de navigation si es necesario
+  const navigation = useNavigation<any>(); // Aquí podemos usar 'any' o un tipo más específico como 'RootStackParamList'
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,7 +30,7 @@ const ProfileScreen = () => {
     fetchUser();
   }, []);
 
-  const menuOptions = [
+  const menuOptions: { title: string; action?: () => void; screen?: string }[] = [
     { title: "Gestión de Contactos", action: () => setShowContactModal(true) },
     { title: "Actualizar correo", action: () => setEmailModalVisible(true) },
     { title: "Actualizar contraseña", action: () => setPasswordModalVisible(true) },
@@ -51,14 +53,19 @@ const ProfileScreen = () => {
 
       <Divider />
 
-      {/* Lista de opciones */}
       <List
         data={menuOptions}
         renderItem={({ item }) => (
           <ListItem
             title={item.title}
             style={styles.listItem}
-            onPress={item.action ? item.action : () => navigation.navigate(item.screen as never)}
+            onPress={() => {
+              if (item.action) {
+                item.action(); // Ejecuta la acción si existe
+              } else if (item.screen) {
+                navigation.navigate(item.screen); // Navega a la pantalla si existe
+              }
+            }}
           />
         )}
       />
